@@ -69,7 +69,7 @@ jobs:
           password: ${{ secrets.PANEL_PASSWORD }}
           port: 21
           local-dir: ./upload_dir/ # <-- Le decimos exactamente qué archivo subir
-          server-dir: /public_html/ # <-- La carpeta de destino en tu servidor
+          server-dir: /public_html # <-- La carpeta de destino en tu servidor
 
       # 8. Llama al script PHP para que descomprima el archivo
       - name: Trigger unzip on server
