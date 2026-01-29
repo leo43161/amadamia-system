@@ -1,11 +1,19 @@
+export interface Variant {
+  id: number
+  size: string
+  color: string
+  stock: number | string
+}
+
 export interface Product {
   id: number
   name: string
   type: string
   brand: string
-  base_price: number | string // La API puede devolver string decimal
+  base_price: number | string
   cover_image: string | null
   total_stock: number | string
+  variants: Variant[]
 }
 
 export interface ProductResponse {

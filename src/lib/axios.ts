@@ -2,7 +2,7 @@ import axios from 'axios'
 import { useAuthStore } from '@/lib/store'
 
 const api = axios.create({
-  baseURL: "/api/public/",
+  baseURL: process.env.URL_SERVER + "/api/public/",
   headers: {
     'Content-Type': 'application/json',
   },

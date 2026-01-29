@@ -4,6 +4,9 @@ const nextConfig = {
   images: {
     unoptimized: true, // Obligatorio para 'output: export'
   },
+  env: {
+    URL_SERVER: process.env.NODE_ENV === 'production' ? "" : "https://localhost/amada_api",
+  },
   // Desactivamos el trailing slash para evitar problemas con rutas en Apache/Nginx simples
   trailingSlash: true, 
 };
