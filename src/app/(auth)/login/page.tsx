@@ -73,7 +73,7 @@ export default function LoginPage() {
             className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60 mix-blend-overlay"
             style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1350&auto=format&fit=crop")' }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/90 via-zinc-900/50 to-zinc-900/30" />
+            <div className="absolute inset-0 bg-linear-to-t from-zinc-900/90 via-zinc-900/50 to-zinc-900/30" />
 
             <div className="relative z-10 flex items-center space-x-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-violet-400"><path d="m19.2 8.2-1.5-2a7 7 0 0 0-11.4 0l-1.5 2a2 2 0 0 0-.6 3.8c.5.3 1.1.4 1.8.3V21h12v-8.7c.7.1 1.3 0 1.8-.3a2 2 0 0 0-.6-3.8Z"/></svg>
@@ -91,7 +91,7 @@ export default function LoginPage() {
       </div>
 
       <div className="flex items-center justify-center p-8 bg-slate-50 dark:bg-slate-950 h-full">
-        <div className="mx-auto w-full max-w-[400px] space-y-8">
+        <div className="mx-auto w-full max-w-100 space-y-8">
           <div className="flex flex-col space-y-2 text-center">
             <h1 className="text-3xl font-bold tracking-tight">Bienvenida</h1>
             <p className="text-sm text-muted-foreground">Ingresa tus credenciales.</p>
