@@ -3,6 +3,7 @@ export interface Variant {
   size: string
   color: string
   stock: number | string
+  sku?: string | null | undefined
 }
 
 export interface Product {
@@ -14,6 +15,11 @@ export interface Product {
   cover_image: string | null
   total_stock: number | string
   variants: Variant[]
+  fabric: string | null
+  description: string | null
+  tags: string
+  cost_price: string
+  images: { image_url: string, id: number }[]
 }
 
 export interface ProductResponse {

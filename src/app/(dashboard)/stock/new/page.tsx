@@ -50,7 +50,7 @@ export default function NewProductPage() {
       base_price: 0,
       cost_price: 0,
       // Iniciamos con una fila de variante vacía
-      variants: [{ size: "", color: "", stock_centro: 0, stock_yb: 0 }] 
+      variants: [{ size: "", color: "", stock_centro: 0, stock_yb: 0 }]
     },
   })
 
@@ -66,7 +66,7 @@ export default function NewProductPage() {
       const filesArray = Array.from(e.target.files)
       // Limitamos a 4 imágenes máximo
       const combinedFiles = [...selectedImages, ...filesArray].slice(0, 4)
-      
+
       setSelectedImages(combinedFiles)
 
       // Generar URLs para previsualizar
@@ -139,7 +139,7 @@ export default function NewProductPage() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          
+
           <div className="grid gap-6 md:grid-cols-2">
             {/* COLUMNA IZQUIERDA: Datos Generales */}
             <div className="space-y-6">
@@ -187,7 +187,7 @@ export default function NewProductPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="brand"
@@ -284,7 +284,7 @@ export default function NewProductPage() {
 
             {/* COLUMNA DERECHA: Variantes y Fotos */}
             <div className="space-y-6">
-               <Card>
+              <Card>
                 <CardHeader>
                   <CardTitle>Imágenes (Max 4)</CardTitle>
                 </CardHeader>
@@ -307,15 +307,15 @@ export default function NewProductPage() {
                         )}
                       </div>
                     ))}
-                    
+
                     {selectedImages.length < 4 && (
                       <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-md aspect-square cursor-pointer hover:bg-slate-50 transition-colors">
                         <Upload className="h-8 w-8 text-slate-400 mb-2" />
                         <span className="text-xs text-slate-500">Subir Foto</span>
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          className="hidden" 
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
                           onChange={handleImageChange}
                         />
                       </label>
@@ -330,83 +330,110 @@ export default function NewProductPage() {
                   <FormDescription>Define los talles, colores y cantidad por local.</FormDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Encabezados de la tabla (Opcional, para que quede más prolijo) */}
+                  <div className="grid grid-cols-12 gap-2 text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-2 px-1">
+                    <div className="col-span-2">Talle</div>
+                    <div className="col-span-2">Color</div>
+                    <div className="col-span-3">SKU / Código</div>
+                    <div className="col-span-2 text-center">Centro</div>
+                    <div className="col-span-2 text-center">YB</div>
+                    <div className="col-span-1"></div>
+                  </div>
+
                   {fields.map((field, index) => (
-                    <div key={field.id} className="relative grid grid-cols-12 gap-2 items-end border-b pb-4 mb-4 last:border-0 last:mb-0">
-                      
-                      {/* Talle (Creatable Manual: Es un Input texto simple que permite poner lo que quieras) */}
-                      <div className="col-span-3">
+                    <div key={field.id} className="relative grid grid-cols-12 gap-2 items-start border-b pb-4 mb-4 last:border-0">
+
+                      {/* 1. Talle (2 col) */}
+                      <div className="col-span-2">
                         <FormField
                           control={form.control}
                           name={`variants.${index}.size`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs">Talle</FormLabel>
                               <FormControl>
-                                <Input placeholder="S, 38..." {...field} />
+                                <Input placeholder="S" className="h-9 text-xs" {...field} />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="text-[10px]" />
                             </FormItem>
                           )}
                         />
                       </div>
 
-                      {/* Color */}
-                      <div className="col-span-3">
+                      {/* 2. Color (2 col) */}
+                      <div className="col-span-2">
                         <FormField
                           control={form.control}
                           name={`variants.${index}.color`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs">Color</FormLabel>
                               <FormControl>
-                                <Input placeholder="Rojo..." {...field} />
+                                <Input placeholder="Rojo" className="h-9 text-xs" {...field} />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="text-[10px]" />
                             </FormItem>
                           )}
                         />
                       </div>
 
-                      {/* Stock Centro */}
+                      {/* 3. SKU (3 col) - ¡NUEVO! */}
+                      <div className="col-span-3">
+                        <FormField
+                          control={form.control}
+                          name={`variants.${index}.sku`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  placeholder="Auto..."
+                                  className="h-9 text-xs font-mono uppercase placeholder:text-slate-300"
+                                  {...field}
+                                  value={field.value ?? ""}
+                                />
+                              </FormControl>
+                              <FormMessage className="text-[10px]" />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* 4. Stock Centro (2 col) */}
                       <div className="col-span-2">
                         <FormField
                           control={form.control}
                           name={`variants.${index}.stock_centro`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs truncate">Stk. Centro</FormLabel>
                               <FormControl>
-                                <Input type="number" {...field} className="text-center" />
+                                <Input type="number" className="h-9 text-xs text-center" {...field} />
                               </FormControl>
                             </FormItem>
                           )}
                         />
                       </div>
 
-                       {/* Stock YB */}
-                       <div className="col-span-2">
+                      {/* 5. Stock YB (2 col) */}
+                      <div className="col-span-2">
                         <FormField
                           control={form.control}
                           name={`variants.${index}.stock_yb`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs truncate">Stk. YB</FormLabel>
                               <FormControl>
-                                <Input type="number" {...field} className="text-center" />
+                                <Input type="number" className="h-9 text-xs text-center" {...field} />
                               </FormControl>
                             </FormItem>
                           )}
                         />
                       </div>
 
-                      <div className="col-span-2 flex justify-end pb-1">
+                      {/* 6. Botón Borrar (1 col) */}
+                      <div className="col-span-1 flex justify-end">
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          className="h-9 w-9 text-slate-400 hover:text-red-500 hover:bg-red-50"
                           onClick={() => remove(index)}
-                          disabled={fields.length === 1} // No borrar si es la única
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -418,8 +445,8 @@ export default function NewProductPage() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="w-full border-dashed"
-                    onClick={() => append({ size: "", color: "", stock_centro: 0, stock_yb: 0 })}
+                    className="w-full border-dashed text-slate-500 hover:text-violet-600 hover:border-violet-200 hover:bg-violet-50"
+                    onClick={() => append({ size: "", color: "", sku: "", stock_centro: 0, stock_yb: 0 })}
                   >
                     <Plus className="mr-2 h-4 w-4" /> Agregar otra variante
                   </Button>
@@ -429,13 +456,13 @@ export default function NewProductPage() {
           </div>
 
           <div className="flex justify-end pt-4">
-             <Button type="submit" size="lg" className="bg-violet-600 hover:bg-violet-700" disabled={isSubmitting}>
+            <Button type="submit" size="lg" className="bg-violet-600 hover:bg-violet-700" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>Guardando...</>
               ) : (
                 <><Save className="mr-2 h-4 w-4" /> Guardar Producto</>
               )}
-             </Button>
+            </Button>
           </div>
         </form>
       </Form>

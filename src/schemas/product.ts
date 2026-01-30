@@ -2,9 +2,10 @@ import * as z from "zod"
 
 // Esquema para una Variante (Fila de la tabla de combinaciones)
 export const variantSchema = z.object({
+  id: z.coerce.number().optional(), // -1 indica nueva variante
   size: z.string().min(1, "El talle es obligatorio"), // Creatable: puede ser "M" o "44 Especial"
   color: z.string().min(1, "El color es obligatorio"),
-  sku: z.string().optional(),
+  sku: z.string().optional().nullable(),
   stock_centro: z.coerce.number().min(0, "Mínimo 0"), // coerce convierte texto a número
   stock_yb: z.coerce.number().min(0, "Mínimo 0"),
 })
