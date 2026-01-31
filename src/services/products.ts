@@ -26,3 +26,20 @@ export const deleteProduct = async (id: number) => {
   const { data } = await api.delete(`/products/${id}`)
   return data
 }
+
+// Obtener Tipos de Productos
+export async function getProductTypes(): Promise<string[]> {
+    const { data } = await api.get('/product-types')
+    return data
+}
+
+export const updateVariantStock = async (variantId: number, branchId: number, quantity: number) => {
+    // Usamos PATCH porque estamos modificando una parte del recurso
+    // Endpoint sugerido: /api/variants/{id}/stock
+    const { data } = await api.post(`/variants/${variantId}/stock`, {
+        branch_id: branchId,
+        quantity: quantity
+    })
+    
+    return data
+}

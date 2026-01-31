@@ -1,13 +1,15 @@
 'use client'
 
-import { useState } from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Package, Pencil, Plus, Search, Shirt, Trash2 } from "lucide-react"
 import Link from "next/link"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { Plus, Search, Trash2, Package, Shirt, Pencil, ChevronDown, ChevronUp } from "lucide-react"
+import { useState } from "react"
 import { toast } from "sonner"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
     Table,
     TableBody,
@@ -16,15 +18,10 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Card, CardContent } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
 
-import { getProducts, deleteProduct } from "@/services/products"
-import { Product } from "@/types/product"
-import { cn } from "@/lib/utils"
 import MobileProductCard from "@/components/dashboard/MobileProductCard"
+import { cn } from "@/lib/utils"
+import { deleteProduct, getProducts } from "@/services/products"
 
 // --- HELPERS ---
 const getImageUrl = (path: string | null) => {

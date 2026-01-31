@@ -4,6 +4,7 @@ export interface Variant {
   color: string
   stock: number | string
   sku?: string | null | undefined
+  stock_detail: { branch_id: number, quantity: number }[]
 }
 
 export interface Product {

@@ -21,15 +21,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { productSchema, type ProductFormValues } from "@/schemas/product"
+import { AutocompleteInput } from "@/components/AutocompleteInput"
 
 export default function NewProductPage() {
   const router = useRouter()
@@ -53,7 +47,9 @@ export default function NewProductPage() {
       variants: [{ size: "", color: "", stock_centro: 0, stock_yb: 0 }]
     },
   })
-
+  if (form.formState.errors) {
+    console.log(form.formState.errors)
+  }
   // Hook para manejar el array dinámico de variantes
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -64,14 +60,28 @@ export default function NewProductPage() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files)
-      // Limitamos a 4 imágenes máximo
-      const combinedFiles = [...selectedImages, ...filesArray].slice(0, 4)
 
+      // Calculamos cuántas podemos agregar
+      const remainingSlots = 4 - selectedImages.length
+
+      if (remainingSlots <= 0) {
+        toast.warning("Ya tienes 4 imágenes seleccionadas.")
+        return
+      }
+
+      // Tomamos solo las que entran
+      const filesToAdd = filesArray.slice(0, remainingSlots)
+
+      if (filesArray.length > remainingSlots) {
+        toast.info(`Solo se agregaron ${remainingSlots} imágenes (límite alcanzado).`)
+      }
+
+      const combinedFiles = [...selectedImages, ...filesToAdd]
       setSelectedImages(combinedFiles)
 
       // Generar URLs para previsualizar
-      const previews = combinedFiles.map(file => URL.createObjectURL(file))
-      setImagePreviews(previews)
+      const newPreviews = filesToAdd.map(file => URL.createObjectURL(file))
+      setImagePreviews([...imagePreviews, ...newPreviews])
     }
   }
 
@@ -84,11 +94,11 @@ export default function NewProductPage() {
 
   // 3. Envío del Formulario
   async function onSubmit(data: ProductFormValues) {
+    console.log(data)
     if (selectedImages.length === 0) {
       toast.error("Faltan imágenes", { description: "Debes subir al menos una foto del producto." })
       return
     }
-
     setIsSubmitting(true)
     try {
       // Creamos el FormData para enviar Archivos + Datos
@@ -169,20 +179,13 @@ export default function NewProductPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Tipo</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Seleccionar" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Pantalón">Pantalón</SelectItem>
-                              <SelectItem value="Remera">Remera</SelectItem>
-                              <SelectItem value="Vestido">Vestido</SelectItem>
-                              <SelectItem value="Abrigo">Abrigo</SelectItem>
-                              <SelectItem value="Accesorio">Accesorio</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <FormControl>
+                            <AutocompleteInput
+                              value={field.value}
+                              onChange={field.onChange}
+                              placeholder="Escribir tipo..."
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -316,6 +319,7 @@ export default function NewProductPage() {
                           type="file"
                           accept="image/*"
                           className="hidden"
+                          multiple
                           onChange={handleImageChange}
                         />
                       </label>
@@ -330,113 +334,129 @@ export default function NewProductPage() {
                   <FormDescription>Define los talles, colores y cantidad por local.</FormDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Encabezados de la tabla (Opcional, para que quede más prolijo) */}
-                  <div className="grid grid-cols-12 gap-2 text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-2 px-1">
-                    <div className="col-span-2">Talle</div>
-                    <div className="col-span-2">Color</div>
-                    <div className="col-span-3">SKU / Código</div>
-                    <div className="col-span-2 text-center">Centro</div>
-                    <div className="col-span-2 text-center">YB</div>
-                    <div className="col-span-1"></div>
-                  </div>
-
                   {fields.map((field, index) => (
-                    <div key={field.id} className="relative grid grid-cols-12 gap-2 items-start border-b pb-4 mb-4 last:border-0">
-
-                      {/* 1. Talle (2 col) */}
-                      <div className="col-span-2">
-                        <FormField
-                          control={form.control}
-                          name={`variants.${index}.size`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input placeholder="S" className="h-9 text-xs" {...field} />
-                              </FormControl>
-                              <FormMessage className="text-[10px]" />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      {/* 2. Color (2 col) */}
-                      <div className="col-span-2">
-                        <FormField
-                          control={form.control}
-                          name={`variants.${index}.color`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input placeholder="Rojo" className="h-9 text-xs" {...field} />
-                              </FormControl>
-                              <FormMessage className="text-[10px]" />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      {/* 3. SKU (3 col) - ¡NUEVO! */}
-                      <div className="col-span-3">
-                        <FormField
-                          control={form.control}
-                          name={`variants.${index}.sku`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input
-                                  placeholder="Auto..."
-                                  className="h-9 text-xs font-mono uppercase placeholder:text-slate-300"
-                                  {...field}
-                                  value={field.value ?? ""}
-                                />
-                              </FormControl>
-                              <FormMessage className="text-[10px]" />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      {/* 4. Stock Centro (2 col) */}
-                      <div className="col-span-2">
-                        <FormField
-                          control={form.control}
-                          name={`variants.${index}.stock_centro`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input type="number" className="h-9 text-xs text-center" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      {/* 5. Stock YB (2 col) */}
-                      <div className="col-span-2">
-                        <FormField
-                          control={form.control}
-                          name={`variants.${index}.stock_yb`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input type="number" className="h-9 text-xs text-center" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      {/* 6. Botón Borrar (1 col) */}
-                      <div className="col-span-1 flex justify-end">
+                    <div
+                      key={field.id}
+                      className="relative p-4 border rounded-lg bg-slate-50/50 space-y-3"
+                    >
+                      {/* Botón Borrar (Flotante arriba a la derecha) */}
+                      <div className="absolute top-2 right-2">
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-9 w-9 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                          className="h-6 w-6 text-slate-400 hover:text-red-500 hover:bg-red-50"
                           onClick={() => remove(index)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
+                      </div>
+
+                      {/* --- FILA 1: Datos del Producto (Talle, Color, SKU) --- */}
+                      <div className="grid grid-cols-12 gap-3 pr-6"> {/* pr-6 para dejar espacio al botón borrar */}
+
+                        {/* Talle (3 columnas) */}
+                        <div className="col-span-3">
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.size`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] uppercase text-slate-500">Talle</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="S" className="h-9 bg-white" {...field} />
+                                </FormControl>
+                                <FormMessage className="text-[10px]" />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Color (4 columnas) */}
+                        <div className="col-span-4">
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.color`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] uppercase text-slate-500">Color</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Rojo" className="h-9 bg-white" {...field} />
+                                </FormControl>
+                                <FormMessage className="text-[10px]" />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* SKU (5 columnas) */}
+                        <div className="col-span-5">
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.sku`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] uppercase text-slate-500">SKU</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="AUTO..."
+                                    className="h-9 bg-white font-mono uppercase text-xs"
+                                    {...field}
+                                    value={field.value ?? ""}
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-[10px]" />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      {/* --- FILA 2: Stocks (Dividido en 2 grandes bloques) --- */}
+                      <div className="grid grid-cols-2 gap-4 pt-1">
+                        <FormField
+                          control={form.control}
+                          name={`variants.${index}.stock_centro`}
+                          render={({ field }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-xs font-medium text-center block text-slate-600">
+                                Stock Centro
+                              </FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Input
+                                    type="number"
+                                    className="h-10 bg-white text-center text-lg font-medium"
+                                    {...field}
+                                  />
+                                  <span className="absolute right-3 top-2.5 text-xs text-slate-400">u.</span>
+                                </div>
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`variants.${index}.stock_yb`}
+                          render={({ field }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-xs font-medium text-center block text-slate-600">
+                                Stock YB
+                              </FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Input
+                                    type="number"
+                                    className="h-10 bg-white text-center text-lg font-medium"
+                                    {...field}
+                                  />
+                                  <span className="absolute right-3 top-2.5 text-xs text-slate-400">u.</span>
+                                </div>
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
                       </div>
                     </div>
                   ))}
@@ -444,11 +464,11 @@ export default function NewProductPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
-                    className="w-full border-dashed text-slate-500 hover:text-violet-600 hover:border-violet-200 hover:bg-violet-50"
+                    size="lg"
+                    className="w-full border-dashed border-2 py-6 text-slate-500 hover:text-violet-600 hover:border-violet-200 hover:bg-violet-50"
                     onClick={() => append({ size: "", color: "", sku: "", stock_centro: 0, stock_yb: 0 })}
                   >
-                    <Plus className="mr-2 h-4 w-4" /> Agregar otra variante
+                    <Plus className="mr-2 h-5 w-5" /> Agregar Variante
                   </Button>
                 </CardContent>
               </Card>

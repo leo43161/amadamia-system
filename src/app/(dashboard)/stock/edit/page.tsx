@@ -10,10 +10,12 @@ import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { productSchema, type ProductFormValues } from "@/schemas/product"
 import { getProduct, updateProduct } from "@/services/products"
+import { AutocompleteInput } from "@/components/AutocompleteInput"
+import { Variant } from "@/types/product"
 
 // Helper para url de imagenes
 const getImageUrl = (path: string | null) => {
@@ -170,31 +172,13 @@ export default function EditProductContent() {
     async function onSubmit(data: ProductFormValues) {
         setIsSubmitting(true)
         console.log("Enviando actualización de producto...")
-        /* DEBUG LOG: [
-    {
-        "size": "S",
-        "color": "Blanco",
-        "sku": "REM-BAS-S-BL",
-        "stock_centro": 10,
-        "stock_yb": 0
-    },
-    {
-        "size": "M",
-        "color": "Blanco",
-        "sku": "REM-BAS-M-BL",
-        "stock_centro": 0,
-        "stock_yb": 8
-    },
-    {
-        "size": "M",
-        "color": "Negro",
-        "sku": "REM-BAS-M-NG",
-        "stock_centro": 0,
-        "stock_yb": 0
-    }
-] */
         console.log("Data variants:");
         console.log(data.variants);
+        const variantsNullable = data.variants.map((v: any) => v.sku === "" ? { ...v, sku: null } : v);
+        console.log("Variants nullable:");
+        console.log(variantsNullable);
+        /* setIsSubmitting(false)
+        return; */
         try {
             const formData = new FormData()
 
@@ -217,7 +201,7 @@ export default function EditProductContent() {
             formData.append("deleted_images", JSON.stringify(deletedImageIds))
 
             // Variantes (Incluye nuevas y editadas)
-            formData.append("variants", JSON.stringify(data.variants))
+            formData.append("variants", JSON.stringify(variantsNullable))
 
             // IDs de Variantes Borradas
             formData.append("deleted_variants", JSON.stringify(deletedVariantIds))
@@ -270,7 +254,13 @@ export default function EditProductContent() {
                                     {/* ... (Resto de inputs iguales a Create, podés copiar y pegar del otro archivo: Type, Brand, Fabric, Tags, Price) ... */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <FormField control={form.control} name="type" render={({ field }) => (
-                                            <FormItem><FormLabel>Tipo</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                                            <FormItem><FormLabel>Tipo</FormLabel><FormControl>
+                                                <AutocompleteInput
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    placeholder="Escribir tipo..."
+                                                />
+                                            </FormControl></FormItem>
                                         )} />
                                         <FormField control={form.control} name="brand" render={({ field }) => (
                                             <FormItem><FormLabel>Marca</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
@@ -327,130 +317,149 @@ export default function EditProductContent() {
 
                             {/* VARIANTES */}
                             <Card>
-                                <CardHeader><CardTitle>Variantes y Stock</CardTitle></CardHeader>
-                                <CardContent className="space-y-4">
-                                    {/* Encabezados de la tabla (Opcional, para que quede más prolijo) */}
-                                    <div className="grid grid-cols-12 gap-2 text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-2 px-1">
-                                        <div className="col-span-2">Talle</div>
-                                        <div className="col-span-2">Color</div>
-                                        <div className="col-span-3">SKU / Código</div>
-                                        <div className="col-span-2 text-center">Centro</div>
-                                        <div className="col-span-2 text-center">YB</div>
-                                        <div className="col-span-1"></div>
-                                    </div>
+                <CardHeader>
+                  <CardTitle>Variantes y Stock</CardTitle>
+                  <FormDescription>Define los talles, colores y cantidad por local.</FormDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {fields.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="relative p-4 border rounded-lg bg-slate-50/50 space-y-3"
+                    >
+                      {/* Botón Borrar (Flotante arriba a la derecha) */}
+                      <div className="absolute top-2 right-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                          onClick={() => remove(index)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
 
-                                    {fields.map((field, index) => (
-                                        <div key={field.id} className="relative grid grid-cols-12 gap-2 items-start border-b pb-4 mb-4 last:border-0">
+                      {/* --- FILA 1: Datos del Producto (Talle, Color, SKU) --- */}
+                      <div className="grid grid-cols-12 gap-3 pr-6"> {/* pr-6 para dejar espacio al botón borrar */}
 
-                                            {/* 1. Talle (2 col) */}
-                                            <div className="col-span-2">
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`variants.${index}.size`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormControl>
-                                                                <Input placeholder="S" className="h-9 text-xs" {...field} />
-                                                            </FormControl>
-                                                            <FormMessage className="text-[10px]" />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                            </div>
+                        {/* Talle (3 columnas) */}
+                        <div className="col-span-3">
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.size`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] uppercase text-slate-500">Talle</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="S" className="h-9 bg-white" {...field} />
+                                </FormControl>
+                                <FormMessage className="text-[10px]" />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
 
-                                            {/* 2. Color (2 col) */}
-                                            <div className="col-span-2">
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`variants.${index}.color`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormControl>
-                                                                <Input placeholder="Rojo" className="h-9 text-xs" {...field} />
-                                                            </FormControl>
-                                                            <FormMessage className="text-[10px]" />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                            </div>
+                        {/* Color (4 columnas) */}
+                        <div className="col-span-4">
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.color`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] uppercase text-slate-500">Color</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Rojo" className="h-9 bg-white" {...field} />
+                                </FormControl>
+                                <FormMessage className="text-[10px]" />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
 
-                                            {/* 3. SKU (3 col) - ¡NUEVO! */}
-                                            <div className="col-span-3">
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`variants.${index}.sku`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormControl>
-                                                                <Input
-                                                                    placeholder="Auto..."
-                                                                    className="h-9 text-xs font-mono uppercase placeholder:text-slate-300"
-                                                                    {...field}
-                                                                    value={field.value ?? ""}
-                                                                />
-                                                            </FormControl>
-                                                            <FormMessage className="text-[10px]" />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                            </div>
+                        {/* SKU (5 columnas) */}
+                        <div className="col-span-5">
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.sku`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] uppercase text-slate-500">SKU</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="AUTO..."
+                                    className="h-9 bg-white font-mono uppercase text-xs"
+                                    {...field}
+                                    value={field.value ?? ""}
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-[10px]" />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
 
-                                            {/* 4. Stock Centro (2 col) */}
-                                            <div className="col-span-2">
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`variants.${index}.stock_centro`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormControl>
-                                                                <Input type="number" className="h-9 text-xs text-center" {...field} />
-                                                            </FormControl>
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                            </div>
+                      {/* --- FILA 2: Stocks (Dividido en 2 grandes bloques) --- */}
+                      <div className="grid grid-cols-2 gap-4 pt-1">
+                        <FormField
+                          control={form.control}
+                          name={`variants.${index}.stock_centro`}
+                          render={({ field }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-xs font-medium text-center block text-slate-600">
+                                Stock Centro
+                              </FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Input
+                                    type="number"
+                                    className="h-10 bg-white text-center text-lg font-medium"
+                                    {...field}
+                                  />
+                                  <span className="absolute right-3 top-2.5 text-xs text-slate-400">u.</span>
+                                </div>
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
 
-                                            {/* 5. Stock YB (2 col) */}
-                                            <div className="col-span-2">
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`variants.${index}.stock_yb`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormControl>
-                                                                <Input type="number" className="h-9 text-xs text-center" {...field} />
-                                                            </FormControl>
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                            </div>
+                        <FormField
+                          control={form.control}
+                          name={`variants.${index}.stock_yb`}
+                          render={({ field }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-xs font-medium text-center block text-slate-600">
+                                Stock YB
+                              </FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Input
+                                    type="number"
+                                    className="h-10 bg-white text-center text-lg font-medium"
+                                    {...field}
+                                  />
+                                  <span className="absolute right-3 top-2.5 text-xs text-slate-400">u.</span>
+                                </div>
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  ))}
 
-                                            {/* 6. Botón Borrar (1 col) */}
-                                            <div className="col-span-1 flex justify-end">
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-9 w-9 text-slate-400 hover:text-red-500 hover:bg-red-50"
-                                                    onClick={() => handleRemoveVariant(index)} // Ojo: en "new" se llama remove(index) directo
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        className="w-full border-dashed text-slate-500 hover:text-violet-600 hover:border-violet-200 hover:bg-violet-50"
-                                        onClick={() => append({ size: "", color: "", sku: "", stock_centro: 0, stock_yb: 0 })}
-                                    >
-                                        <Plus className="mr-2 h-4 w-4" /> Agregar otra variante
-                                    </Button>
-                                </CardContent>
-                            </Card>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    className="w-full border-dashed border-2 py-6 text-slate-500 hover:text-violet-600 hover:border-violet-200 hover:bg-violet-50"
+                    onClick={() => append({ size: "", color: "", sku: "", stock_centro: 0, stock_yb: 0 })}
+                  >
+                    <Plus className="mr-2 h-5 w-5" /> Agregar Variante
+                  </Button>
+                </CardContent>
+              </Card>
                         </div>
                     </div>
 
